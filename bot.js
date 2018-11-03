@@ -130,7 +130,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                 message = 'There are no events coming up!';
             }
             else {
-                message = `**${next.title}** \n\ttakes place on ${next.display_dates}`;
+                message = `**${next.title}** \ntakes place on ${next.display_dates}`;
             }
         }
         catch (err) {
