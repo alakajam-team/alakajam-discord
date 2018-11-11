@@ -14,7 +14,7 @@ Create an `auth.json` file with the following contents:
 }
 ```
 
-To get a bot token, [follow these instructions](https://github.com/reactiflux/discord-irc/wiki/Creating-a-discord-bot-&-getting-a-token).
+To get a bot token, [follow these instructions](https://github.com/reactiflux/discord-irc/wiki/Creating-a-discord-bot-&-getting-a-token). Then invite the bot to your server by calling the following URL: `https://discordapp.com/oauth2/authorize?client_id=YOUR_CLIENT_ID&scope=bot&permissions=83968` ([source](https://discordapp.com/developers/docs/topics/oauth2#bots)).
 
 ## Launch
 
