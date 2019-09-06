@@ -17,6 +17,7 @@ const commands = [
     require('./commands/hype'),
     require('./commands/random'),
     require('./commands/theme'),
+    require('./commands/themestats'),
     require('./commands/timeleft')
 ];
 
@@ -50,7 +51,7 @@ bot.on('message', function (user, _userID, channelID, message, _evt) {
         } else {
             bot.sendMessage({
                 to: channelID,
-                message: 'The spell fizzles. Type !help for help.'
+                message: 'The spell fizzles. Type `!help` for help.'
             });
         }
     }
@@ -68,7 +69,10 @@ function help() {
         run: function(bot, channelID, user, onError, _args) {
             const message = commands
                 .filter(command => command.description)    
-                .map(command =>  `**!${command.name}**: ${command.description}`)
+                .map(command => {
+                    const formattedCommand = ('!' + command.name + formatArgsInfo(command.argsInfo)).padStart(20);
+                    return `\`${formattedCommand}\`   ${command.description}`
+                })
                 .join('\n');
             bot.sendMessage({
                 to: channelID,
@@ -76,4 +80,10 @@ function help() {
             });
         }
     }
+}
+function formatArgsInfo(argsInfo) {
+    const formatted = argsInfo
+        .map(argInfo => '[' + argInfo.name + (argInfo.optional?'?':'') + ']')
+        .join(' ');
+    return formatted ? ' ' + formatted : '';
 }
