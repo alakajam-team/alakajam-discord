@@ -3,7 +3,7 @@ const api = require('../api');
 
 module.exports = {
   name: 'theme',
-  description: 'Theme of the current event.',
+  description: 'Theme of the current event',
   argsInfo: [],
   run: async function theme(bot, channelID, user, onError, args) {
     try {

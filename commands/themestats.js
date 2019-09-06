@@ -4,7 +4,7 @@ const api = require('../api');
 
 module.exports = {
   name: 'themestats',
-  description: 'Get stats about how well a theme has been doing in past events.',
+  description: 'Get stats about how well a theme has been doing in past events',
   argsInfo: [
       {name: 'name', optional: false}
   ],
