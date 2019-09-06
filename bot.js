@@ -1,20 +1,24 @@
-const request = require('request-promise-native');
-var Discord = require('discord.io');
-var logger = require('winston');
-const get = require('lodash/get');
-var auth = require('./auth.json');
-
-
-var api = require('./api');
+const Discord = require('discord.io');
+const logger = require('winston');
+const auth = require('./auth.json');
 
 logger.remove(logger.transports.Console);
 logger.add(new logger.transports.Console, { colorize: true });
 logger.level = 'debug';
 
-var bot = new Discord.Client({
+const bot = new Discord.Client({
    token: auth.token,
    autorun: true
 });
+
+const commands = [
+    help(),
+    require('./commands/hello'),
+    require('./commands/hype'),
+    require('./commands/random'),
+    require('./commands/theme'),
+    require('./commands/timeleft')
+];
 
 /**
  * Handle an error.
@@ -33,160 +37,43 @@ bot.on('ready', function (evt) {
     logger.info(bot.username + ' - (' + bot.id + ')');
 });
 
-bot.on('message', function (user, userID, channelID, message, evt) {
+bot.on('message', function (user, _userID, channelID, message, _evt) {
     // Our bot needs to know if it will execute a command
     // It will listen for messages that will start with `!`
     if (message.substring(0, 1) == '!') {
-        var args = message.substring(1).split(' ');
-        var cmd = args[0];
+        let args = message.substring(1).split(' ');
+        const commandName = args[0].toLowerCase();
 
-        args = args.splice(1);
-        switch(cmd) {
-            case 'help': help();
-                break;
-            case 'timeleft': timeleft();
-                break;
-            case 'hello': hello();
-                break;
-            case 'hype': hype();
-                break;
-            case 'theme': theme();
-                break;
-            case 'random': random();
-                break;
-         }
-    }
-
-    function help() {
-        let message =
-            '**!timeleft:** Time left for the current event \n' +
-            '**!hype:** Info on current and upcoming events \n' +
-            '**!theme:** Theme of the current event \n' +
-            '**!random:** Get a random game from the current event!';
+        const command = commands.find(command => command.name === commandName)
+        if (command) {
+            command.run(bot, channelID, user, onError, args.slice(1));
+        } else {
             bot.sendMessage({
-            to: channelID,
-            message: message
-        });
+                to: channelID,
+                message: 'The spell fizzles. Type !help for help.'
+            });
+        }
     }
-
-    function hello() {
-        var responses = ["Hello $!", "Hi $!", "Hello there $!", "Hi there $!"]
-        bot.sendMessage({
-            to: channelID,
-            message: responses.sample().replace("$", user)
-        });
-    };
-
-    async function theme() {
-        try {
-            const result = await request({uri: api.featuredEvent, json: true});
-            switch (result.status_theme) {
-                case 'disabled':
-                    message = 'Themes are disabled!';
-                    break;
-                case 'off':
-                    message = 'Themes are off!';
-                    break;
-                case 'voting':
-                    message = 'Theme voting is still open. Go vote!';
-                    break;
-                case 'shortlist':
-                    message = 'The theme shortlist is out! See www.alakajam.com' +
-                        result.countdown_config.link;
-                    break;
-                case 'closed':
-                    message = 'Cheeky! Themes will be announced soon.';
-                    break;
-                case 'results':
-                    message = `The theme is: ${result.display_theme}`;
-                    break;
-            }
-        }
-        catch (err) {
-            message = onError(err, {args, command: 'theme'});
-        }
-
-        bot.sendMessage({
-            to: channelID,
-            message: message
-        });
-    };
-
-    async function hype() {
-        let message = '';
-        try {
-            const now = (new Date()).toISOString();
-            // The API sorts events by publication date.
-            const events = await request({uri: api.events, json: true});
-            let next = null;
-            for (let i = events.length - 1; 0 <= i; --i) {
-                if (events[i].countdown_config.date > now) {
-                    next = events[i];
-                    break;
-                }
-            }
-
-            if (next === null) {
-                message = 'There are no events coming up!';
-            }
-            else {
-                message = `**${next.title}** \ntakes place on ${next.display_dates}`;
-            }
-        }
-        catch (err) {
-            message = onError(err, {args, command: 'hype'});
-        }
-        bot.sendMessage({
-            to: channelID,
-            message: message
-        });
-    };
-
-    async function timeleft() {
-        let message = '';
-        try {
-            const result = await request({uri: api.featuredEvent, json: true});
-            message = result.countdown_formatted ||
-                "Couldn't get countdown; is there even an event?";
-        }
-        catch (err) {
-            message = onError(err, {args, command: 'timeleft'});
-        }
-        bot.sendMessage({
-            to: channelID,
-            message: message
-        });
-    }
-
-    async function random() {
-        let message = '';
-        try {
-            const result = await request({uri: api.featuredEvent, json: true});
-            if (result.status === 'pending') {
-                message = `${result.title} has not started yet`;
-            }
-            else if (result.entries && result.entries.length > 0) {
-                const entry = result.entries.sample();
-                message = `Random entry for ${result.title}: \n` +
-                `**${entry.title}**\n` +
-                `https://alakajam.com/${entry.event_name}/${entry.id}`;
-            } else if (result.entries && result.entries.length === 0) {
-                const template = `No entries for ${result.title}`;
-            }
-        }
-        catch (err) {
-            message = onError(err, {args, command: 'random'});
-        }
-        bot.sendMessage({
-            to: channelID,
-            message: message
-        });
-    }
-
 });
-
-
 
 Array.prototype.sample = function(){
   return this[Math.floor(Math.random()*this.length)];
 };
+
+function help() {
+    return {
+        name: 'help',
+        description: undefined,
+        argsInfo: [],
+        run: function(bot, channelID, user, onError, _args) {
+            const message = commands
+                .filter(command => command.description)    
+                .map(command =>  `**!${command.name}**: ${command.description}`)
+                .join('\n');
+            bot.sendMessage({
+                to: channelID,
+                message: 'Available spells:\n' + message
+            });
+        }
+    }
+}
