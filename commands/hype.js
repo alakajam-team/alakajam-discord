@@ -1,4 +1,4 @@
-const request = require('request-promise-native');
+const fetch = require('request-promise-native');
 const api = require('../api');
 const { Message } = require('discord.js');
 
@@ -15,7 +15,7 @@ module.exports = {
     try {
         const now = (new Date()).toISOString();
         // The API sorts events by publication date.
-        const events = await request({uri: api.events, json: true});
+        const events = await fetch({uri: api.events, json: true});
         let next = null;
         for (let i = events.length - 1; 0 <= i; --i) {
             if (events[i].countdown_config.date > now) {
