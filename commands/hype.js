@@ -1,11 +1,16 @@
 const request = require('request-promise-native');
 const api = require('../api');
+const { Message } = require('discord.js');
 
 module.exports = {
   name: 'hype',
   description: 'Info on current and upcoming events',
   argsInfo: [],
-  run: async function hype(bot, channelID, user, onError, _args) {
+
+  /**
+   * @param {Message<boolean>} request 
+   */
+  run: async function hype(request, args, onError) {
     let message = '';
     try {
         const now = (new Date()).toISOString();
@@ -29,9 +34,6 @@ module.exports = {
     catch (err) {
         message = onError(err, {args, command: 'hype'});
     }
-    bot.sendMessage({
-        to: channelID,
-        message: message
-    });
+    request.channel.send(message);
   }
 }

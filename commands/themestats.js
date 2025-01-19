@@ -1,6 +1,7 @@
-const request = require('request-promise-native');
+const fetch = require('request-promise-native');
 const ordinal = require('ordinal');
 const api = require('../api');
+const { Message } = require('discord.js');
 
 module.exports = {
   name: 'themestats',
@@ -8,12 +9,16 @@ module.exports = {
   argsInfo: [
       {name: 'name', optional: false}
   ],
-  run: async function themestats(bot, channelID, user, onError, args) {
+
+  /**
+   * @param {Message<boolean>} request 
+   */
+  run: async function theme(request, args, onError) {
     let message = 'hello'
     try {
         const themeName = args.join(' ');
         const uri = api.theme.replace(':name', args.join(' '));
-        const result = await request({uri, json: true});
+        const result = await fetch({uri, json: true});
         if (result.length > 0) {
             message = `**${themeName}** has been submitted ${result.length} times:\n`
                 + result.map(line => `*${line.eventTitle}*    ${ordinal(line.ranking)} place`)
@@ -25,10 +30,6 @@ module.exports = {
     catch (err) {
         message = onError(err, {args, command: 'theme'});
     }
-
-    bot.sendMessage({
-        to: channelID,
-        message: message
-    });
+    request.channel.send(message);
   }
 }

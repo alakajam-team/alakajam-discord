@@ -1,13 +1,18 @@
-const request = require('request-promise-native');
+const fetch = require('request-promise-native');
 const api = require('../api');
+const { Message } = require('discord.js');
 
 module.exports = {
   name: 'theme',
   description: 'Theme of the current event',
   argsInfo: [],
-  run: async function theme(bot, channelID, user, onError, args) {
+
+  /**
+   * @param {Message<boolean>} request 
+   */
+  run: async function theme(request, args, onError) {
     try {
-        const result = await request({uri: api.featuredEvent, json: true});
+        const result = await fetch({uri: api.featuredEvent, json: true});
         switch (result.status_theme) {
             case 'disabled':
                 message = 'Themes are disabled!';
@@ -33,10 +38,6 @@ module.exports = {
     catch (err) {
         message = onError(err, {args, command: 'theme'});
     }
-
-    bot.sendMessage({
-        to: channelID,
-        message: message
-    });
+    request.channel.send(message);
   }
 }

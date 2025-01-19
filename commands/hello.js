@@ -1,12 +1,16 @@
+const { Message } = require("discord.js");
+
 module.exports = {
   name: 'hello',
   description: undefined,
   argsInfo: [],
-  run: function hello(bot, channelID, user, onError, _args) {
-    var responses = ["Hello $!", "Hi $!", "Hello there $!", "Hi there $!"]
-    bot.sendMessage({
-        to: channelID,
-        message: responses.sample().replace("$", user)
-    });
+
+  /**
+   * @param {Message<boolean>} message 
+   */
+  run: function hello(request, args, onError) {
+    const responses = ["Hello $!", "Hi $!", "Hello there $!", "Hi there $!"]
+    const response = responses.sample().replace("$", request.author.displayName);
+    request.channel.send(response);
   }
 }
