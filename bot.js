@@ -1,4 +1,4 @@
-const { Client, IntentsBitField, Events, GatewayIntentBits, Partials } = require('discord.js');
+const { Client, IntentsBitField, Events, GatewayIntentBits, Partials, Message } = require('discord.js');
 const logger = require('winston');
 const auth = require('./auth.json');
 
@@ -76,7 +76,10 @@ function help() {
         name: 'help',
         description: undefined,
         argsInfo: [],
-        run: function(bot, channelID, user, onError, _args) {
+        /**
+         * @param {Message<boolean>} request 
+         */
+        run: async function help(request, args, onError) {
             const message = commands
                 .filter(command => command.description)    
                 .map(command => {
@@ -84,10 +87,7 @@ function help() {
                     return `\`${formattedCommand}\`   ${command.description}`
                 })
                 .join('\n');
-            bot.sendMessage({
-                to: channelID,
-                message: 'Available spells:\n' + message
-            });
+            request.channel.send('Available spells:\n' + message);
         }
     }
 }
